@@ -1,28 +1,48 @@
-pipeline { 
-  
-   agent any
+pipeline {
+    agent any
 
-   stages {
-   
-     stage('Install Dependencies') { 
-        steps { 
-           sh 'npm install' 
+    stages {
+
+        stage('Verify Files') {
+            steps {
+                echo 'Checking files...'
+                sh 'ls -la'
+            }
         }
-     }
-     
-     stage('Test') { 
-        steps { 
-           sh 'echo "testing application..."'
+
+        stage('Build') {
+            steps {
+                echo 'Creating build folder...'
+
+                sh '''
+                mkdir -p build
+                cp index.html build/
+                cp style.css build/
+                '''
+            }
         }
-      }
 
-         stage("Deploy application") { 
-         steps { 
-           sh 'echo "deploying application..."'
-         }
+        stage('Archive Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'build/*'
+            }
+        }
 
-     }
-  
-   	}
+    }
 
-   }
+    post {
+
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed!'
+        }
+
+        always {
+            echo 'Cleaning workspace...'
+            cleanWs()
+        }
+    }
+}
